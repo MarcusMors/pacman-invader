@@ -5,8 +5,26 @@ pygame.init()
 
 size = horizontal , vertical= 1280, 660     
 screen = pygame.display.set_mode((size))
+
+def main_menu():
+    on = True
+    while on:
+        screen.fill((255,255,255))
+        b_start = pygame.Rect(horizontal//2 - 150, vertical//(4), 300, 50) 
+        pygame.draw.rect(screen, (40, 95, 141), b_start)
+        x, y = pygame.mouse.get_pos()
+
+        if b_start.collidepoint(x,y):
+            if pygame.mouse.get_pressed()[0] == 1:
+                game()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                on = False
+        pygame.display.update()
+
 pac = pygame.image.load('data/basic_pacman.png')
 ghost = pygame.image.load('data/basic_fantasma.png')
+bala = pygame.image.load('data/bala.png')
 #miscelanea
 icon = pac
 pygame.display.set_icon(icon)
@@ -24,6 +42,8 @@ def pos_pac(x,y):
     screen.blit(pac,(x,y))
 nav_cambiox=0
 nav_cambioy=0
+nav = pygame.image.load('data/nave2.png')
+navx,navy = size[0]//4 + size[0 ]//2 -(nav.get_size()[0]//2) , size[1] - 2*(nav.get_size()[1])
 def pos_nav(x,y):
     screen.blit(nav,(x,y))
 ghost_cambiox=0
@@ -44,9 +64,16 @@ def colocar_marc(x,y,i):
     screen.blit(marc_juego[i],(x,y))
 def pos_ghost(x,y):
     screen.blit(ghost,(x,y))
+balax= navx
+balay= navy
+bala_cambioy = 2
+bala_estado = "Listo" #disparado
+def disparar_bala(x,y):
+    global bala_estado
+    bala_estado = "Disparado"
+    screen.blit(bala,(x,y))
 
-nav = pygame.image.load('data/nave2.png')
-navx,navy = size[0]//4 + size[0]//2 -(nav.get_size()[0]//2) , size[1] - 2*(nav.get_size()[1])
+
 #ghost
 ghost_cont = 0
 ghost_cont_limit = random.randint(5,10)
@@ -131,5 +158,16 @@ while on:
     pos_nav(navx,navy)
     pos_pac(pacx,pacy)
     pos_ghost(ghostx,ghosty)
+    if pygame.mouse.get_pressed()[0]:
+        if bala_estado == "Listo":
+            balax= navx+(nav.get_size()[0]//2 - bala.get_size()[0]//2)
+            balay= navy+(nav.get_size()[0]//2 - bala.get_size()[0]//2)
+            disparar_bala(balax,balay)
+    if balay <=0:
+        balay =navy
+        bala_estado = "Listo"
+    if bala_estado == "Disparado":
+        disparar_bala(balax,balay)
+        balay-=bala_cambioy
     pygame.mouse.set_visible(False)
     pygame.display.update()
