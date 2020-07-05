@@ -3,7 +3,7 @@ import random
 
 pygame.init()
 
-size = horizontal , vertical= 1280, 720 
+size = horizontal , vertical= 1280, 660     
 screen = pygame.display.set_mode((size))
 pac = pygame.image.load('data/basic_pacman.png')
 ghost = pygame.image.load('data/basic_fantasma.png')
@@ -12,10 +12,10 @@ icon = pac
 pygame.display.set_icon(icon)
 pygame.display.set_caption('Pacman invader')
 background = (0,0,0)
-on = True
 pacx,pacy = size[0]//4 - (pac.get_size()[0]//2) , size[1]//2 - (pac.get_size()[1]//2)
 ghostx,ghosty = size[0]//4 - (ghost.get_size()[0]//2), size[1] - (pac.get_size()[1])
 colour_mid = (255,255,255)
+colour_map = (0,0,200)
 width_mid = 3//2
 
 pacman_cambiox=0
@@ -28,6 +28,20 @@ def pos_nav(x,y):
     screen.blit(nav,(x,y))
 ghost_cambiox=0
 ghost_cambioy=0
+num_marcs = 3
+marc_juego = []
+marc_p_i_L= []
+marc_p_i_A= []
+marc_t_cambio_L = []
+marc_t_cambio_A = []
+for i in range(num_marcs):
+    marc_juego.append(pygame.image.load('data/marc1.png'))
+    marc_p_i_L.append(random.randint(size[0]//2,size[0]-marc_juego[i].get_size()[0]))
+    marc_p_i_A.append(random.randint(0,size[1]//3))
+    marc_t_cambio_L.append(1)
+    marc_t_cambio_A.append(10)
+def colocar_marc(x,y,i):
+    screen.blit(marc_juego[i],(x,y))
 def pos_ghost(x,y):
     screen.blit(ghost,(x,y))
 
@@ -37,12 +51,13 @@ navx,navy = size[0]//4 + size[0]//2 -(nav.get_size()[0]//2) , size[1] - 2*(nav.g
 ghost_cont = 0
 ghost_cont_limit = random.randint(5,10)
 ghost_mov = random.randint(0,1)
-#ghost
 
+on = True
 while on:
     screen.fill(background)
+    #Pacman_map
     pygame.draw.line(screen,colour_mid,[(horizontal//2),0],[(horizontal//2),vertical],width_mid)
-    #fantasma
+    #pygame.draw.rect(screen,colour_map,[(horizontal//2),(horizontal//2),vertical])
     for event in pygame.event.get():
         if event.type == pygame.QUIT: 
             on = False
@@ -61,7 +76,7 @@ while on:
             if event.key == pygame.K_UP or event.key == pygame.K_DOWN:
                 pacman_cambioy=0
             
-    #pygame.key.set_repeat() #delay,intervalo
+    #pacman location
     if pacx >= size[0]//2 - pac.get_size()[0]:
         pacx = size[0]//2 - pac.get_size()[0]
     elif pacx <=0:
@@ -104,7 +119,15 @@ while on:
         navy = size[1] - nav.get_size()[1]
     elif navy <=0:
         navy = 0
-    
+    for i in range(num_marcs):
+        marc_p_i_L[i] += marc_t_cambio_L[i]
+        if marc_p_i_L[i] <=size[0]//2:
+            marc_t_cambio_L[i] = 1.3
+            marc_p_i_A[i] += marc_t_cambio_A[i]
+        elif marc_p_i_L[i] >= size[0] - marc_juego[i].get_size()[0]:
+            marc_t_cambio_L[i] = -1.3
+            marc_p_i_A[i] += marc_t_cambio_A[i]
+        colocar_marc(marc_p_i_L[i],marc_p_i_A[i],i)
     pos_nav(navx,navy)
     pos_pac(pacx,pacy)
     pos_ghost(ghostx,ghosty)
