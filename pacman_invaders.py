@@ -14,7 +14,6 @@ def main_menu():
         b_start = pygame.Rect(horizontal//2 - 150, vertical//(4), 300, 50) 
         pygame.draw.rect(screen, (40, 95, 141), b_start)
         x, y = pygame.mouse.get_pos()
-
         if b_start.collidepoint(x,y):
             if pygame.mouse.get_pressed()[0] == 1:
                 game()
@@ -25,7 +24,7 @@ def main_menu():
         pygame.display.update()
 
 def game():
-
+    #mapa = pygame.image.load('data/lines_map.png')
     pac = pygame.image.load('data/basic_pacman.png')
     ghost = pygame.image.load('data/basic_fantasma.png')
     bala = pygame.image.load('data/bala.png')
@@ -44,6 +43,7 @@ def game():
     pacman_cambioy=0
     def pos_pac(x,y):
         screen.blit(pac,(x,y))
+    
     nav_cambiox=0
     nav_cambioy=0
     nav = pygame.image.load('data/nave2.png')
@@ -162,6 +162,7 @@ def game():
         pos_nav(navx,navy)
         pos_pac(pacx,pacy)
         pos_ghost(ghostx,ghosty)
+        #screen.blit(mapa,[size[0]//4,size[1]//2])
         if pygame.mouse.get_pressed()[0]:
             if bala_estado == "Listo":
                 balax= navx+(nav.get_size()[0]//2 - bala.get_size()[0]//2)
