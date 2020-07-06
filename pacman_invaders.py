@@ -2,7 +2,6 @@ import pygame
 import random
 import math
 from pygame import mixer
-pygame.init()
 
 def init():
     global screen,size, horizontal, vertical, pac, bala, ghost, background, colour_mid, icon, width_mid, tile
@@ -125,7 +124,6 @@ def game():
     balay= navy
     bala_cambioy = 3
     bala_estado = "Listo" #disparado
-
     #ghost
     ghost_cont = 0
     ghost_cont_limit = random.randint(5,10)
