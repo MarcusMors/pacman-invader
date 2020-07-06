@@ -1,11 +1,25 @@
 import pygame
 import random
-
+import math
+from pygame import mixer
 pygame.init()
 
 size = horizontal , vertical= 1280, 660     
 screen = pygame.display.set_mode((size))
 
+mixer.music.load("Sonidos/snd_title_song.ogg")
+mixer.music.play(-1)
+mapa = pygame.image.load('data/map_lines.png')
+pac = pygame.image.load('data/basic_pacman.png')
+ghost = pygame.image.load('data/basic_fantasma.png')
+bala = pygame.image.load('data/bala.png')
+icon = pac
+pygame.display.set_icon(icon)
+pygame.display.set_caption('Pacman invader')
+background = (180,20,60)
+colour_mid = (255,255,255)
+colour_map = (0,0,200)
+width_mid = 3//2
 def main_menu():
     on = True
     while on:
@@ -24,21 +38,13 @@ def main_menu():
         pygame.display.update()
 
 def game():
-    #mapa = pygame.image.load('data/lines_map.png')
-    pac = pygame.image.load('data/basic_pacman.png')
-    ghost = pygame.image.load('data/basic_fantasma.png')
-    bala = pygame.image.load('data/bala.png')
     #miscelanea
-    icon = pac
-    pygame.display.set_icon(icon)
-    pygame.display.set_caption('Pacman invader')
-    background = (0,0,0)
     pacx,pacy = size[0]//4 - (pac.get_size()[0]//2) , size[1]//2 - (pac.get_size()[1]//2)
     ghostx,ghosty = size[0]//4 - (ghost.get_size()[0]//2), size[1] - (pac.get_size()[1])
-    colour_mid = (255,255,255)
-    colour_map = (0,0,200)
-    width_mid = 3//2
 
+    def hubo_colision(x1,x2,y1,y2,hitbox):
+        distancia = math.sqrt(math.pow(x1 - x2,2)+math.pow(y1 - y2,2))
+        return True if distancia <hitbox else False
     pacman_cambiox=0
     pacman_cambioy=0
     def pos_pac(x,y):
@@ -52,7 +58,7 @@ def game():
         screen.blit(nav,(x,y))
     ghost_cambiox=0
     ghost_cambioy=0
-    num_marcs = 3
+    num_marcs = 80
     marc_juego = []
     marc_p_i_L= []
     marc_p_i_A= []
@@ -72,11 +78,6 @@ def game():
     balay= navy
     bala_cambioy = 2
     bala_estado = "Listo" #disparado
-    def disparar_bala(x,y):
-        global bala_estado
-        bala_estado = "Disparado"
-        screen.blit(bala,(x,y))
-
 
     #ghost
     ghost_cont = 0
@@ -86,9 +87,7 @@ def game():
     on = True
     while on:
         screen.fill(background)
-        #Pacman_map
         pygame.draw.line(screen,colour_mid,[(horizontal//2),0],[(horizontal//2),vertical],width_mid)
-        #pygame.draw.rect(screen,colour_map,[(horizontal//2),(horizontal//2),vertical])
         for event in pygame.event.get():
             if event.type == pygame.QUIT: 
                 on = False
@@ -158,21 +157,32 @@ def game():
             elif marc_p_i_L[i] >= size[0] - marc_juego[i].get_size()[0]:
                 marc_t_cambio_L[i] = -1.3
                 marc_p_i_A[i] += marc_t_cambio_A[i]
+            centro = math.sqrt(math.pow(marc_juego[0].get_size()[0]//2 - 0 ,2)+math.pow(marc_juego[0].get_size()[1]//2 - 0,2))
+            colision = hubo_colision(marc_p_i_L[i]+marc_juego[i].get_size()[0]//2,balax+bala.get_size()[0]//2,marc_p_i_A[i]+marc_juego[i].get_size()[1]//2,balay,centro)
+            if colision:
+                bala_estado = "Listo"
+                balay= navy
+                marc_p_i_L[i]= random.randint(size[0]//2,size[0]-marc_juego[i].get_size()[0])
+                marc_p_i_A[i]= random.randint(0,size[1]//3)
             colocar_marc(marc_p_i_L[i],marc_p_i_A[i],i)
         pos_nav(navx,navy)
         pos_pac(pacx,pacy)
         pos_ghost(ghostx,ghosty)
-        #screen.blit(mapa,[size[0]//4,size[1]//2])
+        screen.blit(mapa,[0,0])
         if pygame.mouse.get_pressed()[0]:
             if bala_estado == "Listo":
+                sonido_bala = mixer.Sound("Sonidos/snd_chomp.ogg")  
+                sonido_bala.play()
                 balax= navx+(nav.get_size()[0]//2 - bala.get_size()[0]//2)
                 balay= navy+(nav.get_size()[0]//2 - bala.get_size()[0]//2)
-                disparar_bala(balax,balay)
+                bala_estado = "Disparado"
+                screen.blit(bala,(balax,balay))
         if balay <=0:
             balay =navy
             bala_estado = "Listo"
         if bala_estado == "Disparado":
-            disparar_bala(balax,balay)
+            bala_estado = "Disparado"
+            screen.blit(bala,(balax,balay))
             balay-=bala_cambioy
     
 
