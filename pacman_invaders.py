@@ -4,23 +4,69 @@ import math
 from pygame import mixer
 pygame.init()
 
-size = horizontal , vertical= 1280, 660     
-screen = pygame.display.set_mode((size))
+def init():
+    global screen,size, horizontal, vertical, pac, bala, ghost, background, colour_mid, icon, width_mid, tile
+    pygame.init()
+    size = horizontal , vertical= 16*64, 33*16     
+    screen = pygame.display.set_mode((size))
+    tile = pygame.image.load("data/white_block.png")
+    mixer.music.load("Sonidos/snd_title_song.ogg")
+    mixer.music.play(-1)
+    pac = pygame.image.load('data/basic_pacman.png')
+    ghost = pygame.image.load('data/basic_fantasma.png')
+    bala = pygame.image.load('data/bala.png')
+    icon = pac
+    pygame.display.set_icon(icon)
+    pygame.display.set_caption('Pacman invader')
+    background = (180,20,60)
+    colour_mid = (255,255,255)
+    colour_map = (0,0,200)
+    width_mid = 3//2
 
-mixer.music.load("Sonidos/snd_title_song.ogg")
-mixer.music.play(-1)
-mapa = pygame.image.load('data/map_lines.png')
-pac = pygame.image.load('data/basic_pacman.png')
-ghost = pygame.image.load('data/basic_fantasma.png')
-bala = pygame.image.load('data/bala.png')
-icon = pac
-pygame.display.set_icon(icon)
-pygame.display.set_caption('Pacman invader')
-background = (180,20,60)
-colour_mid = (255,255,255)
-colour_map = (0,0,200)
-width_mid = 3//2
+char_map ="""XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+X              XX              X
+X XXXX XXXXXXX XX XXXXXXX XXXX X
+X XXXX XXXXXXX XX XXXXXXX XXXX X
+X XX        XX XX XX        XX X
+X XX XXXXXX XX XX XX XXXXXX XX X
+X    XXXXXX          XXXXXX    X
+X XX XX     XXXXXXXX     XX XX X
+X XX XXXXXXXXXXXXXXXXXXXXXX XX X
+X XX XXXXXXXXXXXXXXXXXXXXXX XX X
+X              XX              X
+X XXXX XXXXXXX XX XXXXXXX XXXX X
+X XXXX XXXXXXX XX XXXXXXX XXXX X
+X      XXX            XXX      X
+XXXXXX XXX XXXX  XXXX XXX XXXXXX
+XXXXXX XXX X        X XXX XXXXXX
+           X        X           
+XXXXXX XXX X        X XXX XXXXXX
+XXXXXX XXX XXXXXXXXXX XXX XXXXXX
+X      XXX            XXX      X
+X XXXX XXX XXXXXXXXXX XXX XXXX X
+X XXXX XXX XXXXXXXXXX XXX XXXX X
+X XXXX         XX              X
+X XXXX XXXXXXX XX XXXXXXX XXXX X
+X XXXX XXXXXXX XX XXXXXXX XXXX X
+X          XXX    XXX          X
+X XXXXXXXX XXX XX XXX XXXXXXXX X
+X XXXXXXXX XXX XX XXX XXXXXXXX X
+X      XXX     XX     XXX      X
+X XXXX XXX XXXXXXXXXX XXX XXXX X
+X XXXX XXX XXXXXXXXXX XXX XXXX X
+X                              X
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"""
+
+def tiles(mapa):
+    global tile
+    for y, line in enumerate(mapa):
+        for x, c in enumerate(line):
+            if c =="X":
+                screen.blit(tile,(x*16,y*16))
 def main_menu():
+    global mapa
+    mapa = char_map.splitlines()
+    init()
     on = True
     while on:
         screen.fill((0,0,0))
@@ -30,12 +76,13 @@ def main_menu():
         x, y = pygame.mouse.get_pos()
         if b_start.collidepoint(x,y):
             if pygame.mouse.get_pressed()[0] == 1:
+                tiles(mapa)
                 game()
-
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 on = False
         pygame.display.update()
+    pygame.quit()
 
 def game():
     #miscelanea
@@ -58,7 +105,7 @@ def game():
         screen.blit(nav,(x,y))
     ghost_cambiox=0
     ghost_cambioy=0
-    num_marcs = 80
+    num_marcs = 5
     marc_juego = []
     marc_p_i_L= []
     marc_p_i_A= []
@@ -76,7 +123,7 @@ def game():
         screen.blit(ghost,(x,y))
     balax= navx
     balay= navy
-    bala_cambioy = 2
+    bala_cambioy = 3
     bala_estado = "Listo" #disparado
 
     #ghost
@@ -87,6 +134,7 @@ def game():
     on = True
     while on:
         screen.fill(background)
+        tiles(mapa)
         pygame.draw.line(screen,colour_mid,[(horizontal//2),0],[(horizontal//2),vertical],width_mid)
         for event in pygame.event.get():
             if event.type == pygame.QUIT: 
@@ -168,7 +216,6 @@ def game():
         pos_nav(navx,navy)
         pos_pac(pacx,pacy)
         pos_ghost(ghostx,ghosty)
-        screen.blit(mapa,[0,0])
         if pygame.mouse.get_pressed()[0]:
             if bala_estado == "Listo":
                 sonido_bala = mixer.Sound("Sonidos/snd_chomp.ogg")  
