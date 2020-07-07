@@ -4,7 +4,7 @@ import math
 from pygame import mixer
 
 def init():
-    global screen,size, horizontal, vertical, pac, bala, ghost, background, colour_mid, icon, width_mid, tile
+    global screen,size, horizontal, vertical, pac, bala, ghost, background, white, icon, width_mid, tile, black, colour_b1
     pygame.init()
     size = horizontal , vertical= 16*64, 33*16     
     screen = pygame.display.set_mode((size))
@@ -17,8 +17,11 @@ def init():
     icon = pac
     pygame.display.set_icon(icon)
     pygame.display.set_caption('Pacman invader')
+    
     background = (180,20,60)
-    colour_mid = (255,255,255)
+    white = (255,255,255)
+    black = (0,0,0)
+    colour_b1 = (40, 95, 141)
     colour_map = (0,0,200)
     width_mid = 3//2
 
@@ -63,14 +66,14 @@ def tiles(mapa):
             if c =="X":
                 screen.blit(tile,(x*16,y*16))
 
-def buttons(b_x, b_y, b_with, b_height, text, surface):
+def buttons(b_x, b_y, b_with, b_height, b_color, text, surface,color_font):
 
     button = pygame.Rect(int(b_x), int(b_y), int(b_with), int(b_height))
-    pygame.draw.rect(surface, (40, 95, 141), button)
+    pygame.draw.rect(surface, b_color, button) #b_color (40, 95, 141)
             
     b_font = pygame.font.Font('data/game_over.ttf', b_with//3)
 
-    b_text = b_font.render(text,True,(255,255,255))
+    b_text = b_font.render(text,True,color_font)
     surface.blit(b_text,(int(b_x) + b_with//2 - b_text.get_rect().width//2, int(b_y) + b_height//2 - b_text.get_rect().height//2))
     
     return  button
@@ -91,14 +94,34 @@ def main_menu():
         pos_x = horizontal/2 - 150
         pos_y = Title_G.get_rect().height + 30
         rest =  vertical - pos_y
-
-        b_start = buttons(pos_x,pos_y + rest-(rest/5*5),300,50,"Start",screen)
-        b_options = buttons(pos_x,pos_y + rest-(rest/5*4),300,50,"Options",screen)
-        b_shop = buttons(pos_x,pos_y + rest-(rest/5*3),300,50,"Shop",screen)
-        b_credits = buttons(pos_x,pos_y + rest-(rest/5*2),300,50,"Credits",screen)
-        b_exit = buttons(pos_x,pos_y + rest-(rest/5*1),300,50,"Exit",screen)
-       
         x, y = pygame.mouse.get_pos()
+
+        if pos_x + 300 > x > pos_x and pos_y + rest-(rest/5*5) + 50 > y > pos_y + rest-(rest/5*5):
+            b_start = buttons(pos_x,pos_y + rest-(rest/5*5), 300, 50, colour_b1, "Start", screen, white)
+        else:
+            b_start = buttons(pos_x,pos_y + rest-(rest/5*5), 300, 50, white, "Start", screen, black)
+        
+        if pos_x + 300 > x > pos_x and pos_y + rest-(rest/5*4) + 50 > y > pos_y + rest-(rest/5*4):
+           b_options = buttons(pos_x,pos_y + rest-(rest/5*4), 300, 50, colour_b1, "Options", screen, white)
+        else:
+            b_options = buttons(pos_x,pos_y + rest-(rest/5*4), 300, 50, white, "Options", screen, black)
+        
+        if pos_x + 300 > x > pos_x and pos_y + rest-(rest/5*3) + 50 > y > pos_y + rest-(rest/5*3):
+            b_shop = buttons(pos_x,pos_y + rest-(rest/5*3), 300, 50, colour_b1, "Shop", screen, white)
+        else:
+            b_shop = buttons(pos_x,pos_y + rest-(rest/5*3), 300, 50, white, "Shop", screen, black)
+
+        if pos_x + 300 > x > pos_x and pos_y + rest-(rest/5*2) + 50 > y > pos_y + rest-(rest/5*2):
+            b_credits = buttons(pos_x, pos_y + rest-(rest/5*2), 300, 50, colour_b1, "Credits", screen, white)
+        else:
+            b_credits = buttons(pos_x, pos_y + rest-(rest/5*2), 300, 50, white, "Credits", screen, black)
+        
+        if pos_x + 300 > x > pos_x and pos_y + rest-(rest/5*1) + 50 > y > pos_y + rest-(rest/5*1):
+            b_exit = buttons(pos_x, pos_y + rest-(rest/5*1), 300, 50, colour_b1, "Exit", screen, white)
+        else:
+            b_exit = buttons(pos_x, pos_y + rest-(rest/5*1), 300, 50, white, "Exit", screen, black)
+               
+        
         if b_start.collidepoint(x,y):
             if pygame.mouse.get_pressed()[0] == 1:
                 game()
@@ -171,7 +194,7 @@ def game():
     while on:
         screen.fill(background)
         tiles(mapa)
-        pygame.draw.line(screen,colour_mid,[(horizontal//2),0],[(horizontal//2),vertical],width_mid)
+        pygame.draw.line(screen,white,[(horizontal//2),0],[(horizontal//2),vertical],width_mid)
         for event in pygame.event.get():
             if event.type == pygame.QUIT: 
                 on = False
@@ -295,7 +318,7 @@ def Shop():
         fuente = pygame.font.Font('data/game_over.ttf', 300)
         Title_G = fuente.render("Shop", True, (255,255,255))
         screen.blit(Title_G, (horizontal//2 - Title_G.get_rect().width//2, 50))
-        
+        #menu_title("Shop")
         
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -310,7 +333,7 @@ def Credits():
         fuente = pygame.font.Font('data/game_over.ttf', 300)
         Title_G = fuente.render("Credits", True, (255,255,255))
         screen.blit(Title_G, (horizontal//2 - Title_G.get_rect().width//2, 50))
-        
+        #menu_title("Credits")        
         
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -326,15 +349,15 @@ def Exit():
         Title_G = fuente.render("Exit", True, (255,255,255))
         screen.blit(Title_G, (horizontal//2 - Title_G.get_rect().width//2, 50))
         
-        b_yes = buttons(horizontal//3, Title_G.get_rect().height + 120,200,50,"Yes",screen)
-        b_no = buttons(horizontal//3 + 220, Title_G.get_rect().height + 120,200,50,"No",screen)
+        b_yes = buttons(horizontal//3, Title_G.get_rect().height + 120, 200, 50, colour_b1,"Yes",screen, white)
+        b_no = buttons(horizontal//3 + 220, Title_G.get_rect().height + 120, 200, 50, colour_b1,"No",screen, white)
 
         x, y = pygame.mouse.get_pos()
         if b_yes.collidepoint(x,y):
             if pygame.mouse.get_pressed()[0] == 1:
                 on = False
                 return on
-        if b_no.collidepoint:
+        elif b_no.collidepoint:
             if pygame.mouse.get_pressed()[0] == 1:
                 on = False
                 return True
@@ -343,5 +366,10 @@ def Exit():
             if event.type == pygame.QUIT:
                 on = False
         pygame.display.update()
-
+def menu_title(title):
+    screen.fill((0,0,0))
+    pygame.mouse.set_visible(True)
+    fuente = pygame.font.Font('data/game_over.ttf', 300)
+    Title_G = fuente.render(title, True, (255,255,255))
+    screen.blit(Title_G, (horizontal//2 - Title_G.get_rect().width//2, 50))
 main_menu()
