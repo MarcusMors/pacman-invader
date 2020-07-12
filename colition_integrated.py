@@ -4,11 +4,12 @@ import math
 from pygame import mixer
 import os
 import sys
-
+"""GIFImage by yo"""
 from PIL import Image
 from pygame.locals import *
 import time
-
+pygame.init()
+from time import sleep
 class GIFImage(object):
     def __init__(self, filename):
         self.filename = filename
@@ -175,69 +176,56 @@ class GIFImage(object):
         new.ptime = self.ptime
         new.reversed = self.reversed
         return new
+class Player(object):
+    def __init__(self,posx = 20,posy=20):
+        self.rect = pygame.Rect(posx, posy, 20,20)
+    def move(self, dx, dy):
+        # Move each axis separately. Note that this checks for collisions both times.
+        if dx != 0:
+            self.move_single_axis(dx, 0)
+        if dy != 0:
+            self.move_single_axis(0, dy)    
+    def move_single_axis(self, dx, dy):
+        self.rect.x += dx
+        self.rect.y += dy
+        for wall in walls:
+            if self.rect.colliderect(wall.rect):
+                if dx > 0: # Moving right; Hit the left side of the wall
+                    self.rect.right = wall.rect.left
+                if dx < 0: # Moving left; Hit the right side of the wall
+                    self.rect.left = wall.rect.right
+                if dy > 0: # Moving down; Hit the top side of the wall
+                    self.rect.bottom = wall.rect.top
+                if dy < 0: # Moving up; Hit the bottom side of the wall
+                    self.rect.top = wall.rect.bottom
+class Wall(object):
+    def __init__(self, pos):
+        walls.append(self)
+        self.rect = pygame.Rect(pos[0], pos[1], b_p, b_p)
 
-
-def init():
-    global screen,size, horizontal, vertical, pac, bala, ghost, background, colour_mid, icon, width_mid, b_p, clock, walls, end_rect, Player, player
-    b_p = 20
-    os.environ["SDL_ViDEO_CENTERED"] = "1"
-    pygame.init()
-    size = horizontal , vertical= 64*b_p, 33*b_p     
-    screen = pygame.display.set_mode((size))
-    mixer.music.load("Sonidos/snd_title_song.ogg")
-    mixer.music.play(-1)
-    # pac = pygame.image.load('data/basic_pacman.png')
+def image_music_display():
+    global pac, ghost, bala
+    pac = pygame.image.load('data/basic_pacman.png')
     ghost = pygame.image.load('data/basic_fantasma.png')
     bala = pygame.image.load('data/bala.png')
-    # icon = pac
-    # pygame.display.set_icon(icon)
+    icon = pac
+    pygame.display.set_icon(icon)
     pygame.display.set_caption('Pacman invader')
-    background = (180,20,60)
-    colour_mid = (255,255,255)
-    colour_map = (0,0,200)
-    width_mid = 3//2
-    
-    def update(self, dt):
-        self.current_time += dt
-        if self.current_time >= self.animation_time:
-            self.current_time = 0
-            self.image = next(self.images)
+    os.environ["SDL_ViDEO_CENTERED"] = "1"
 
-    class Player(object):
-        
-        
-        def __init__(self):
-            # pacmanplayer = GIFImage('data/gif.gif') 
-            # self.rect = pacmanplayer.rect
-            self.rect = pygame.Rect(32, 32, 20, 20)
-            #self.pacman = pygame.
-        def move(self, dx, dy):
-            # Move each axis separately. Note that this checks for collisions both times.
-            if dx != 0:
-                self.move_single_axis(dx, 0)
-            if dy != 0:
-                self.move_single_axis(0, dy)    
-        def move_single_axis(self, dx, dy):
-            self.rect.x += dx
-            self.rect.y += dy
-            for wall in walls:
-                if self.rect.colliderect(wall.rect):
-                    if dx > 0: # Moving right; Hit the left side of the wall
-                        self.rect.right = wall.rect.left
-                    if dx < 0: # Moving left; Hit the right side of the wall
-                        self.rect.left = wall.rect.right
-                    if dy > 0: # Moving down; Hit the top side of the wall
-                        self.rect.bottom = wall.rect.top
-                    if dy < 0: # Moving up; Hit the bottom side of the wall
-                        self.rect.top = wall.rect.bottom
-    class Wall(object):
-        def __init__(self, pos):
-            walls.append(self)
-            self.rect = pygame.Rect(pos[0], pos[1], b_p, b_p)
+def colours():
+    global col_bg, white, col_map, black, colour_b1
+    col_bg = (180,20,60)
+    white = (255,255,255)
+    col_map = (0,0,200)
+    black = (0,0,0)
+    colour_b1 = (40,95,141)
+
+def colision():
+    global Player, player, clock, walls ,ghosty,ghostyPink
     clock = pygame.time.Clock()
     walls = [] # List to hold the walls
     player = Player() # Create the player
-    # player = GIFImage('data/pacman.gif')
     level =[
     'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX',
     'X           XX    XX           X',
@@ -249,13 +237,13 @@ def init():
     'X XX X      XX    XX      X XX X',
     'X XX X   XXXXX    XXXXX   X XX X',
     'X XX XXXXXXXXX    XXXXXXXXX XX X',
-    'X              XX              X',
+    'I              XX              F',
     'X XXXX XXXXXXX XX XXXXXXX XXXX X',
     'X XXXX XXXXXXX XX XXXXXXX XXXX X',
     'X      XXX            XXX      X',
     'XXXXXX XXX XXXX  XXXX XXX XXXXXX',
     'XXXXXX XXX X        X XXX XXXXXX',
-    '           X        X           ',
+    'I          X   E W  X          F',
     'XXXXXX XXX X        X XXX XXXXXX',
     'XXXXXX XXX XXXXXXXXXX XXX XXXXXX',
     'X      XXX            XXX      X',
@@ -270,7 +258,7 @@ def init():
     'X      XXX     XX     XXX      X',
     'X XXXX XXX XXXXXXXXXX XXX XXXX X',
     'X XXXX XXX XXXXXXXXXX XXX XXXX X',
-    'X               E              X',
+    'X                              X',
     'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX']
     x = y = 0
     for row in level:
@@ -278,26 +266,64 @@ def init():
             if col == "X":
                 Wall((x, y))
             if col == "E":
-                end_rect = pygame.Rect(x, y, b_p, b_p)
+                ghosty = Player(x,y)
+            if col == "W":
+                ghostyPink = Player(x,y)
+            if col == "I":
+                horizontalInical.append([x,y])
+            if col == "F":
+                horizontalFinal.append([x,y])
             x += b_p
         y += b_p
         x = 0
 
-def buttons(b_x, b_y, b_with, b_height, text, surface):
+def init():
+    global screen,size, horizontal, vertical, b_p, width_mid, lives,horizontalInical,horizontalFinal
+    pygame.init()
+    horizontalInical=[]
+    horizontalFinal=[]
+    b_p = 20
+    lives = 3
+    size = horizontal , vertical= 64*b_p, 33*b_p     
+    screen = pygame.display.set_mode((size))
+    width_mid = 3//2
+    image_music_display()
+    colours()
+    colision()
+
+def buttons(b_x, b_y, b_with, b_height, b_color, text, surface,color_font):
 
     button = pygame.Rect(int(b_x), int(b_y), int(b_with), int(b_height))
-    pygame.draw.rect(surface, (40, 95, 141), button)
+    pygame.draw.rect(surface, b_color, button) #b_color (40, 95, 141)
             
     b_font = pygame.font.Font('data/game_over.ttf', b_with//3)
 
-    b_text = b_font.render(text,True,(255,255,255))
+    b_text = b_font.render(text,True,color_font)
     surface.blit(b_text,(int(b_x) + b_with//2 - b_text.get_rect().width//2, int(b_y) + b_height//2 - b_text.get_rect().height//2))
     
     return  button
 
+def entity_collicion():
+    if player.rect.colliderect(ghosty.rect) or player.rect.colliderect(ghostyPink.rect):
+        global lives
+        player.rect.x = 20
+        player.rect.y = 20
+        lives -= 1
+        if lives == 0:
+            main_menu()
+
+def transport_player(p1,p2,horizontal=True):
+    sumax = 2 if horizontal else 0
+    sumay = 0 if horizontal else 2
+    if player.rect.x == p1[0]-sumax and player.rect.y==p1[1]+sumay:
+        player.rect.x = p2[0]
+        player.rect.y = p2[1]
+    if player.rect.x == p2[0]+sumax and player.rect.y==p2[1]-sumay:
+        player.rect.x = p1[0]
+        player.rect.y = p1[1]
+
 def get_pressed(key):
     if key[pygame.K_w]:
-        
         player.move( 0,-2)
     if key[pygame.K_s]:
         player.move( 0, 2)
@@ -313,12 +339,31 @@ def buttons_menu():
     pos_x = horizontal/2 - 150
     pos_y = Title_G.get_rect().height + 30
     rest =  vertical - pos_y
-    b_start = buttons(pos_x,pos_y + rest-(rest/5*5),300,50,"Start",screen)
-    b_options = buttons(pos_x,pos_y + rest-(rest/5*4),300,50,"Options",screen)
-    b_shop = buttons(pos_x,pos_y + rest-(rest/5*3),300,50,"Shop",screen)
-    b_credits = buttons(pos_x,pos_y + rest-(rest/5*2),300,50,"Credits",screen)
-    b_exit = buttons(pos_x,pos_y + rest-(rest/5*1),300,50,"Exit",screen)
     x, y = pygame.mouse.get_pos()
+    if pos_x + 300 > x > pos_x and pos_y + rest-(rest/5*5) + 50 > y > pos_y + rest-(rest/5*5):
+        b_start = buttons(pos_x,pos_y + rest-(rest/5*5), 300, 50, colour_b1, "Start", screen, white)
+    else:
+        b_start = buttons(pos_x,pos_y + rest-(rest/5*5), 300, 50, white, "Start", screen, black)
+    
+    if pos_x + 300 > x > pos_x and pos_y + rest-(rest/5*4) + 50 > y > pos_y + rest-(rest/5*4):
+       b_options = buttons(pos_x,pos_y + rest-(rest/5*4), 300, 50, colour_b1, "Options", screen, white)
+    else:
+        b_options = buttons(pos_x,pos_y + rest-(rest/5*4), 300, 50, white, "Options", screen, black)
+    
+    if pos_x + 300 > x > pos_x and pos_y + rest-(rest/5*3) + 50 > y > pos_y + rest-(rest/5*3):
+        b_shop = buttons(pos_x,pos_y + rest-(rest/5*3), 300, 50, colour_b1, "Shop", screen, white)
+    else:
+        b_shop = buttons(pos_x,pos_y + rest-(rest/5*3), 300, 50, white, "Shop", screen, black)
+
+    if pos_x + 300 > x > pos_x and pos_y + rest-(rest/5*2) + 50 > y > pos_y + rest-(rest/5*2):
+        b_credits = buttons(pos_x, pos_y + rest-(rest/5*2), 300, 50, colour_b1, "Credits", screen, white)
+    else:
+        b_credits = buttons(pos_x, pos_y + rest-(rest/5*2), 300, 50, white, "Credits", screen, black)
+    
+    if pos_x + 300 > x > pos_x and pos_y + rest-(rest/5*1) + 50 > y > pos_y + rest-(rest/5*1):
+        b_exit = buttons(pos_x, pos_y + rest-(rest/5*1), 300, 50, colour_b1, "Exit", screen, white)
+    else:
+        b_exit = buttons(pos_x, pos_y + rest-(rest/5*1), 300, 50, white, "Exit", screen, black)
     if b_start.collidepoint(x,y):
         if pygame.mouse.get_pressed()[0] == 1:
             game()
@@ -334,26 +379,24 @@ def buttons_menu():
     if b_exit.collidepoint(x,y):
         if pygame.mouse.get_pressed()[0] == 1:
             on = Exit()
-def entity_collicion():
-    if player.rect.colliderect(end_rect):
-        pygame.quit()
-        sys.exit()
 
-def background_process():
+def col_bg_process():
     screen.fill((0, 0, 0))
     pygame.mouse.set_visible(True)
 def pacman_process():
+    ghost_move(ghosty)
+    ghost_move(ghostyPink)
     for wall in walls:
         pygame.draw.rect(screen, (255, 255, 255), wall.rect)
-    # pygame.draw.rect(screen, (255, 0, 0), end_rect)
-    # pygame.draw.rect(screen, (200, 200, 200), player.rect)
-    
-    # pygame.draw.circle(screen, (255, 200, 0), (32,32),8)
+
 def main_menu():
+    mixer.music.stop()
+    mixer.music.load("sonidos/snd_title_song.ogg")
+    mixer.music.play(-1)
     init()
     on = True
     while on:
-        background_process()
+        col_bg_process()
         buttons_menu()
         pygame.display.flip()
         for event in pygame.event.get():
@@ -363,19 +406,21 @@ def main_menu():
     pygame.quit()
 
 def game():
-
-    #miscelanea
-    # pacx,pacy = size[0]//4 - (pac.get_size()[0]//2) , size[1]//2 - (pac.get_size()[1]//2)
-    # ghostx,ghosty = size[0]//4 - (ghost.get_size()[0]//2), size[1] - (pac.get_size()[1])
     pacmanplayer = GIFImage('data/pacman.gif')
-    fantasmita = GIFImage('data/fantasma.gif')
+    fantasmita = GIFImage('data/fantasmaRojo.gif')
+    fantasmitaPink = GIFImage('data/fantasmaRosado.gif')
+    mixer.music.stop()
+    mixer.music.load("sonidos/msc_song.ogg")
+    mixer.music.play(-1)
+    #miscelanea
+
     def hubo_colision(x1,x2,y1,y2,hitbox):
         distancia = math.sqrt(math.pow(x1 - x2,2)+math.pow(y1 - y2,2))
         return True if distancia <hitbox else False
     pacman_cambiox=0
     pacman_cambioy=0
-    # def pos_pac(x,y):
-    #     screen.blit(pac,(x,y))
+    def pos_pac(x,y):
+        screen.blit(pac,(x,y))
     
     nav_cambiox=0
     nav_cambioy=0
@@ -411,71 +456,22 @@ def game():
     ghost_mov = random.randint(0,1)
 
     on = True
-    # while 1:
-    #     for event in pygame.event.get():
-    #         if event.type == QUIT:
-    #             pygame.quit()
-    #             return
     while on:
-        screen.fill(background)
-        pygame.draw.line(screen,colour_mid,[(horizontal//2),0],[(horizontal//2),vertical],width_mid)
+        screen.fill(col_bg)
+        pygame.draw.line(screen,white,[(horizontal//2),0],[(horizontal//2),vertical],width_mid)
         pacman_process()
         entity_collicion()
-        clock.tick(360)                
+        clock.tick(360)
+        for i in range(0,len(horizontalInical)):
+            transport_player(horizontalInical[i],horizontalFinal[i])
         key = pygame.key.get_pressed()
         get_pressed(key) # qué tecla se está aprentando?
         for event in pygame.event.get():
-            if event.type == pygame.QUIT: 
+            if event.type == pygame.QUIT:
+                mixer.music.stop()
+                mixer.music.load("sonidos/snd_title_song.ogg")
+                mixer.music.play(-1)
                 on = False
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_RIGHT:
-                    pacman_cambiox+=1
-                if event.key == pygame.K_LEFT:
-                    pacman_cambiox-=1
-                if event.key == pygame.K_UP:
-                    pacman_cambioy-=1
-                if event.key == pygame.K_DOWN:
-                    pacman_cambioy+=1
-            if event.type == pygame.KEYUP:
-                if event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT:
-                    pacman_cambiox=0
-                if event.key == pygame.K_UP or event.key == pygame.K_DOWN:
-                    pacman_cambioy=0
-                
-        #pacman location
-        # if pacx >= size[0]//2 - pac.get_size()[0]:
-        #     pacx = size[0]//2 - pac.get_size()[0]
-        # elif pacx <=0:
-        #     pacx=0 
-        # if pacy >= size[1]- pac.get_size()[0]:
-        #     pacy = size[1] - pac.get_size()[0]
-        # elif pacy <=0:
-        #     pacy = 0
-        
-        # if ghost_mov == 0 and ghost_cont <= ghost_cont_limit:
-        #     ghost_cambiox = random.randint(-1,1)
-        #     ghost_cont += 1
-        # elif ghost_mov == 1 and ghost_cont <= ghost_cont_limit:
-        #     ghost_cambioy = random.randint(-1,1)
-        #     ghost_cont += 1
-        # else:
-        #     ghost_cont = 0
-        #     ghost_cont_limit = random.randint(5,10)
-        #     ghost_mov = random.randint(0,1)
-        # pacx +=pacman_cambiox
-        # pacy +=pacman_cambioy
-        
-        # ghostx+=ghost_cambiox
-        # ghosty+=ghost_cambioy
-        # if ghostx >= size[0]//2 - ghost.get_size()[0]:
-        #     ghostx = size[0]//2 - ghost.get_size()[0]
-        # elif ghostx <=0:
-        #     ghostx=0 
-        # if ghosty >= size[1]- ghost.get_size()[0]:
-        #     ghosty = size[1] - ghost.get_size()[0]
-        # elif ghosty <=0:
-        #     ghosty = 0
-
         navx,navy = pygame.mouse.get_pos()[0]-nav.get_size()[0]//2,pygame.mouse.get_pos()[1]-nav.get_size()[0]//2
         if navx >= size[0] - nav.get_size()[0]:
             navx = size[0] - nav.get_size()[0]
@@ -502,8 +498,6 @@ def game():
                 marc_p_i_A[i]= random.randint(0,size[1]//3)
             colocar_marc(marc_p_i_L[i],marc_p_i_A[i],i)
         pos_nav(navx,navy)
-        # pos_pac(pacx,pacy)
-        # pos_ghost(ghostx,ghosty)
         if pygame.mouse.get_pressed()[0]:
             if bala_estado == "Listo":
                 sonido_bala = mixer.Sound("Sonidos/snd_chomp.ogg")  
@@ -519,11 +513,10 @@ def game():
             bala_estado = "Disparado"
             screen.blit(bala,(balax,balay))
             balay-=bala_cambioy
-        # pacmanplayer.render(screen,(150,150))
+    
         pacmanplayer.render(screen,(player.rect.x,player.rect.y))
-        fantasmita.render(screen,(end_rect.x,end_rect.y))
-        # pacmanplayer.reverse()
-        # test.render(screen, (150, 150))
+        fantasmita.render(screen,(ghosty.rect.x,ghosty.rect.y))
+        fantasmitaPink.render(screen,(ghostyPink.rect.x,ghostyPink.rect.y))
         pygame.mouse.set_visible(False)
         pygame.display.update()
 
@@ -550,7 +543,7 @@ def Shop():
         fuente = pygame.font.Font('data/game_over.ttf', 300)
         Title_G = fuente.render("Shop", True, (255,255,255))
         screen.blit(Title_G, (horizontal//2 - Title_G.get_rect().width//2, 50))
-        
+        #menu_title("Shop")
         
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -565,7 +558,7 @@ def Credits():
         fuente = pygame.font.Font('data/game_over.ttf', 300)
         Title_G = fuente.render("Credits", True, (255,255,255))
         screen.blit(Title_G, (horizontal//2 - Title_G.get_rect().width//2, 50))
-        
+        #menu_title("Credits")        
         
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -581,23 +574,49 @@ def Exit():
         Title_G = fuente.render("Exit", True, (255,255,255))
         screen.blit(Title_G, (horizontal//2 - Title_G.get_rect().width//2, 50))
         
-        b_yes = buttons(horizontal//3, Title_G.get_rect().height + 120,200,50,"Yes",screen)
-        b_no = buttons(horizontal//3 + 220, Title_G.get_rect().height + 120,200,50,"No",screen)
-
+        b_yes = buttons(horizontal//3, Title_G.get_rect().height + 120, 200, 50, colour_b1,"Yes",screen, white)
+        b_no = buttons(horizontal//3 + 220, Title_G.get_rect().height + 120, 200, 50, colour_b1,"No",screen, white)
         x, y = pygame.mouse.get_pos()
         if b_yes.collidepoint(x,y):
             if pygame.mouse.get_pressed()[0] == 1:
-                on = False
-                return on
-        if b_no.collidepoint:
+                pygame.quit()
+                sys.exit()
+        if b_no.collidepoint(x,y):
             if pygame.mouse.get_pressed()[0] == 1:
+                sleep(.15)
                 on = False
-                return True
-        
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 on = False
         pygame.display.update()
 
+
+def menu_title(title):
+    screen.fill((0,0,0))
+    pygame.mouse.set_visible(True)
+    fuente = pygame.font.Font('data/game_over.ttf', 300)
+    Title_G = fuente.render(title, True, (255,255,255))
+    screen.blit(Title_G, (horizontal//2 - Title_G.get_rect().width//2, 50))
+def ghost_move(ghost):
+    ghost_movement = random.randint(0,3)
+    ghost_counter = 0
+    ghost_counter_limit = random.randint(5,10)
+    if ghost_movement == 0 and ghost_counter <= ghost_counter_limit:
+        ghost.move( 0, 2)
+        ghost_counter += 1
+    elif ghost_movement == 1 and ghost_counter <= ghost_counter_limit:
+        ghost.move(-2, 0)
+        ghost_counter += 1
+    elif ghost_movement == 2 and ghost_counter <= ghost_counter_limit:
+        ghost.move( 2, 0)
+        ghost_counter += 1
+    elif ghost_movement == 3 and ghost_counter <= ghost_counter_limit:
+        ghost.move( 0,-2)
+        ghost_counter += 1
+    else:
+        ghost_counter = 0
+        ghost_counter_limit = random.randint(5,10)
+        ghost_movement = random.randint(0,3)
 main_menu()
+
 
