@@ -31,7 +31,6 @@ def colision():
             self.rect = pygame.Rect(32, 32, 16, 16)
             #self.pacman = pygame.
         def move(self, dx, dy):
-            # Move each axis separately. Note that this checks for collisions both times.
             if dx != 0:
                 self.move_single_axis(dx, 0)
             if dy != 0:
