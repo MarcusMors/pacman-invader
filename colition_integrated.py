@@ -339,8 +339,8 @@ class Playerpc(object):
         if dy != 0:
             self.move_single_axis(0, dy)    
     def move_single_axis(self, dx, dy):
-        self.rect.x += -dx
-        self.rect.y += -dy
+        self.rect.x += dx
+        self.rect.y += dy
         for wall in walls:
             if self.rect.colliderect(wall.rect):
                 if dx > 0: # Moving right; Hit the left side of the wall
