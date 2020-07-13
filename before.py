@@ -367,10 +367,13 @@ class Playerpoint(object):
         if dx != 0:
             self.move_single_axis(dx, 0)
         if dy != 0:
-            self.move_single_axis(0, dy)   
+            self.move_single_axis(0, dy)
     def move_single_axis(self, dx, dy):
+        global score
         self.rect.x += dx
         self.rect.y += dy
+        self.idx_x = 0
+        self.idx_y = 0
         for wall in walls:
             if self.rect.colliderect(wall.rect):
                 if dx > 0: # Moving right; Hit the left side of the wall
@@ -381,7 +384,24 @@ class Playerpoint(object):
                     self.rect.bottom = wall.rect.top
                 if dy < 0: # Moving up; Hit the bottom side of the wall
                     self.rect.top = wall.rect.bottom
-
+        for i in range(33):
+            if self.rect.x <= 20*i:
+                self.idx_x = i
+                break
+        for i in range(34):
+            if self.rect.y <= 20*i:
+                self.idx_y = i
+                break
+        self.new = []
+        for char in level[self.idx_y]:
+            self.new.append(char)
+        if self.new[self.idx_x] == ' ':
+            self.new[self.idx_x] = '.'
+            score = score + 15
+        final = ''
+        for char in self.new:
+            final = final + str(char)
+        level[self.idx_y] = final
 
 def image_music_display():
     global pac, ghost, bala
@@ -401,11 +421,10 @@ def colours():
     colour_b1 = (40,95,141)
 
 def colision():
-    global Playerpc, player, clock, walls ,ghosty,ghostyPink, points, level
+    global Playerpc, player, clock, walls ,ghosty,ghostyPink, points, level, Playerpoint
     clock = pygame.time.Clock()
     walls = [] # List to hold the walls
     points = []
-    player = Playerpoint() # Create the player
     level =[
     'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX',
     'X           XX    XX           X',
@@ -441,6 +460,7 @@ def colision():
     'X                              X',
     'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX']
     x = y = 0
+    player = Playerpoint() # Create the player
     for row in level:
         for col in row:
             if col == "X":
@@ -503,18 +523,6 @@ def entity_collicion():
         lives -= 1
         if lives == 0:
             main_menu()
-    for point in points:
-        if player.rect.colliderect(point.circ):
-            idx_y = player.move_single_axis.rect.y//20 -1
-            idx_x = player.move_single_axis.rect.x//20 -1
-            new = []
-            new = level[idx_y].split()
-            if new[idx_x] == ' ':
-                new[idx_x] = "-"
-                final = ''
-                for char in new:
-                    final = final + char
-                level[idx_y] = final
 
 def transport_player(p1,p2,horizontal=True):
     sumax = 5 if horizontal else 0
@@ -554,12 +562,23 @@ def col_bg_process():
     screen.fill((0, 0, 0))
     pygame.mouse.set_visible(True)
 def pacman_process():
+    global points, score
     ghost_move(ghosty)
     ghost_move(ghostyPink)
     for wall in walls:
         pygame.draw.rect(screen, (40,95,141), wall.rect)
     for point in points:
         pygame.draw.rect(screen, (233,189,21), point.circ)
+    x = y = 0
+    points = []
+    for row in level:
+        for col in row:
+            if col == " ":
+                Point((x,y))
+            x += b_p
+        y += b_p
+        x = 0
+    #redraw de points
 
 def main_menu():
     mixer.music.stop()
