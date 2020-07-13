@@ -11,7 +11,6 @@ import time
 pygame.init()
 from time import sleep
 pygame.font.init()
-
 # Space Invaders
 WIDTH, HEIGHT = 1280 , 660 
 # Load images
@@ -27,9 +26,19 @@ RED_LASER = pygame.image.load(os.path.join("assets", "pixel_laser_red.png"))
 GREEN_LASER = pygame.image.load(os.path.join("assets", "pixel_laser_green.png"))
 BLUE_LASER = pygame.image.load(os.path.join("assets", "pixel_laser_blue.png"))
 YELLOW_LASER = pygame.image.load(os.path.join("assets", "pixel_laser_yellow.png"))
-
+RAPID_FIRE = pygame.transform.scale(pygame.image.load(os.path.join("assets", "thunder.png")), (50,50))
 # Background
 BG = pygame.transform.scale(pygame.image.load(os.path.join("assets", "background-black.png")), (WIDTH // 2, HEIGHT))
+class powerup:
+    def __init__(self, x, y,img):
+        self.x = x
+        self.y = y
+        self.img = img
+        self.mask = pygame.mask.from_surface(self.img)
+    def draw(self, window):
+        window.blit(self.img, (self.x, self.y))
+    def collision(self, obj):
+        return collide(self, obj)
 class Laser:
     def __init__(self, x, y, img):
         self.x = x
@@ -125,7 +134,6 @@ class Playersp(Ship):
     def healthbar(self, window):
         pygame.draw.rect(window, (255,0,0), (self.x, self.y + self.ship_img.get_height() + 10, self.ship_img.get_width(), 10))
         pygame.draw.rect(window, (0,255,0), (self.x, self.y + self.ship_img.get_height() + 10, self.ship_img.get_width() * (self.health/self.max_health), 10))
-
 
 class Enemy(Ship):
     COLOR_MAP = {
@@ -324,7 +332,7 @@ class Playerpc(object):
     def __init__(self,posx = 20,posy=20):
         self.rect = pygame.Rect(posx, posy, 20,20)
     def move(self, dx, dy):
-        # Move each axis separately
+        # Move each axis separately.
         if dx != 0:
             self.move_single_axis(dx, 0)
         if dy != 0:
@@ -332,7 +340,37 @@ class Playerpc(object):
     def move_single_axis(self, dx, dy):
         self.rect.x += dx
         self.rect.y += dy
+        for wall in walls:
+            if self.rect.colliderect(wall.rect):
+                if dx > 0: # Moving right; Hit the left side of the wall
+                    self.rect.right = wall.rect.left
+                if dx < 0: # Moving left; Hit the right side of the wall
+                    self.rect.left = wall.rect.right
+                if dy > 0: # Moving down; Hit the top side of the wall
+                    self.rect.bottom = wall.rect.top
+                if dy < 0: # Moving up; Hit the bottom side of the wall
+                    self.rect.top = wall.rect.bottom
+class Wall(object):
+    def __init__(self, pos):
+        walls.append(self)
+        self.rect = pygame.Rect(pos[0], pos[1], b_p, b_p)
+class Point(object):
+    def __init__(self, pos):
+        points.append(self)
+        self.circ = pygame.Rect((pos[0]+b_p/2), (pos[1]+b_p/2), 4, 4)
 
+class Playerpoint(object):
+    def __init__(self,posx = 20,posy=20):
+        self.rect = pygame.Rect(posx, posy, 20,20)
+    def move(self, dx, dy):
+        # Move each axis separately.
+        if dx != 0:
+            self.move_single_axis(dx, 0)
+        if dy != 0:
+            self.move_single_axis(0, dy)   
+    def move_single_axis(self, dx, dy):
+        self.rect.x += dx
+        self.rect.y += dy
         for wall in walls:
             if self.rect.colliderect(wall.rect):
                 if dx > 0: # Moving right; Hit the left side of the wall
@@ -344,14 +382,6 @@ class Playerpc(object):
                 if dy < 0: # Moving up; Hit the bottom side of the wall
                     self.rect.top = wall.rect.bottom
 
-class Wall(object):
-    def __init__(self, pos):
-        walls.append(self)
-        self.rect = pygame.Rect(pos[0], pos[1], b_p, b_p)
-class Point(object):
-    def __init__(self, pos):
-        points.append(self)
-        self.circ = pygame.Rect((pos[0]+b_p/2), (pos[1]+b_p/2), 4, 4)
 
 def image_music_display():
     global pac, ghost, bala
@@ -371,11 +401,11 @@ def colours():
     colour_b1 = (40,95,141)
 
 def colision():
-    global Playerpc, player, clock, walls ,ghosty, ghostyPink, points, level
+    global Playerpc, player, clock, walls ,ghosty,ghostyPink, points, level
     clock = pygame.time.Clock()
     walls = [] # List to hold the walls
     points = []
-    player = Playerpc() # Create the player
+    player = Playerpoint() # Create the player
     level =[
     'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX',
     'X           XX    XX           X',
@@ -383,10 +413,10 @@ def colision():
     'X XXXX XXXX XX XX XX XXXX XXXX X',
     'X XX           XX           XX X',
     'X XX XXXXXX XX XX XX XXXXXX XX X',
-    'X    X---XX XX -- XX XX---X    X',
+    'X    X---XX XX XX XX XX---X    X',
     'X XX X---   XX    XX   ---X XX X',
-    'X XX X---XXXXX -- XXXXX---X XX X',
-    'X XX XXXXXXXXX XX XXXXXXXXX XX X',
+    'X XX X---XXXXX    XXXXX---X XX X',
+    'X XX XXXXXXXXX    XXXXXXXXX XX X',
     'I              XX              F',
     'X XXXX XXXXXXX XX XXXXXXX XXXX X',
     'X XXXX XXXXXXX XX XXXXXXX XXXX X',
@@ -430,8 +460,9 @@ def colision():
         x = 0
 
 def init():
-    global screen,size, horizontal, vertical, b_p, width_mid, lives,horizontalInical,horizontalFinal
+    global screen,size, horizontal, vertical, b_p, width_mid, lives,horizontalInical,horizontalFinal, score
     pygame.init()
+    score = 0
     horizontalInical=[]
     horizontalFinal=[]
     b_p = 20
@@ -472,6 +503,18 @@ def entity_collicion():
         lives -= 1
         if lives == 0:
             main_menu()
+    for point in points:
+        if player.rect.colliderect(point.circ):
+            idx_y = player.move_single_axis.rect.y//20 -1
+            idx_x = player.move_single_axis.rect.x//20 -1
+            new = []
+            new = level[idx_y].split()
+            if new[idx_x] == ' ':
+                new[idx_x] = "-"
+                final = ''
+                for char in new:
+                    final = final + char
+                level[idx_y] = final
 
 def transport_player(p1,p2,horizontal=True):
     sumax = 5 if horizontal else 0
@@ -482,7 +525,6 @@ def transport_player(p1,p2,horizontal=True):
     if player.rect.x == p2[0]+sumax and player.rect.y==p2[1]-sumay:
         player.rect.x = p1[0]
         player.rect.y = p1[1]
-
 def get_pressed(key):
     if key[pygame.K_w]:
         player.move( 0,-5)
@@ -511,15 +553,13 @@ def Interface_menu():
 def col_bg_process():
     screen.fill((0, 0, 0))
     pygame.mouse.set_visible(True)
-
 def pacman_process():
     ghost_move(ghosty)
     ghost_move(ghostyPink)
     for wall in walls:
-        pygame.draw.rect(screen, (255, 255, 255), wall.rect)
+        pygame.draw.rect(screen, (40,95,141), wall.rect)
     for point in points:
         pygame.draw.rect(screen, (233,189,21), point.circ)
-
 
 def main_menu():
     mixer.music.stop()
@@ -552,14 +592,19 @@ def game():
     enemy_vel = 2
 
     player_vel = 5
-    laser_vel = 5
+    laserplay_vel = 5
+    laserenem_vel = 5
 
     playersp = Playersp(WIDTH//2 + WIDTH//4 - 10, 600)
+    rapidfire = powerup(125,125,RAPID_FIRE)
+    powu=1
 
     clock = pygame.time.Clock()
 
     lost = False
     lost_count = 0
+    loca_x = 20
+    loca_y = 20
     
     def redraw_window():
         screen.blit(BG, (WIDTH//2 ,0))
@@ -618,6 +663,10 @@ def game():
 
         if len(enemies) == 0:
             level += 1
+            playersp.COOLDOWN = 30
+            player_vel = 5
+            laserplay_vel = 5
+            wave_length += 5
             wave_length += 5
             for i in range(wave_length):
                 enemy = Enemy(random.randrange(WIDTH // 2 + 50, WIDTH - 50), random.randrange(-1500, -100), random.choice(["red", "blue", "green"]))
@@ -641,7 +690,7 @@ def game():
 
         for enemy in enemies[:]:
             enemy.move(enemy_vel)
-            enemy.move_lasers(laser_vel, playersp)
+            enemy.move_lasers(laserenem_vel, playersp)
 
             if random.randrange(0, 2*60) == 1:
                 enemy.shoot()
@@ -653,14 +702,13 @@ def game():
                 lives -= 1
                 enemies.remove(enemy)
 
-        playersp.move_lasers(-laser_vel, enemies)
+        playersp.move_lasers(-laserplay_vel, enemies)
         ###
         screen.blit(BG, (0 ,0))
         pacman_process()
         entity_collicion()
         for i in range(0,len(horizontalInical)):
             transport_player(horizontalInical[i],horizontalFinal[i])
-        
         get_pressed(keys) # qué tecla se está aprentando?
 
         for event in pygame.event.get():
@@ -674,6 +722,17 @@ def game():
         fantasmita.render(screen,(ghosty.rect.x,ghosty.rect.y))
         fantasmitaPink.render(screen,(ghostyPink.rect.x,ghostyPink.rect.y))
         pygame.mouse.set_visible(False)
+        if powu == 1 and level > 0 and level < 4:
+            rapidfire.draw(screen)
+            if rapidfire.x +50 == player.rect.x and player.rect.y<rapidfire.y+18 and player.rect.y>rapidfire.y-18:
+                del(rapidfire)
+                powu = 0
+                playersp.COOLDOWN = 10
+                player_vel = 10
+                laserplay_vel = 15 
+        elif level == 4:
+            del(rapidfire)
+            powu = 0 
         pygame.display.update()
 
 def Options():
@@ -755,8 +814,6 @@ def menu_title(title):
     Title_G = fuente.render(title, True, (255,255,255))
     screen.blit(Title_G, (horizontal//2 - Title_G.get_rect().width//2, 50))
 def ghost_move(ghost):
-    ran_begin = random.randint(0,6)
-    ran_end = random.randint(6,12)
     ghost_movement = random.randint(0,3)
     ghost_counter = 0
     ghost_counter_limit = random.randint(5,10)
@@ -777,5 +834,6 @@ def ghost_move(ghost):
         ghost_counter_limit = random.randint(5,10)
         ghost_movement = random.randint(0,3)
 main_menu()
+
 
 
